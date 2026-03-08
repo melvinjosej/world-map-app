@@ -24,7 +24,10 @@
 
   <!-- World View -->
   <main id="world-view" class="view active">
-    <p class="subtitle">Tap a continent to explore!</p>
+    <div id="game-banner" class="hidden">
+      <p id="game-prompt">Where is Africa?</p>
+    </div>
+    <p class="subtitle" id="world-subtitle">Tap a continent to explore!</p>
     <div id="map-container">
       <svg id="world-map" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg"></svg>
     </div>
@@ -64,8 +67,11 @@
     </div>
   </div>
 
-  <!-- Audio -->
-  <button id="sound-toggle" class="header-btn" aria-label="Toggle sound">🔊</button>
+  <!-- Floating Controls -->
+  <div id="floating-controls">
+    <button id="game-toggle" class="header-btn" aria-label="Toggle Quiz Mode">🎮</button>
+    <button id="sound-toggle" class="header-btn" aria-label="Toggle sound">🔊</button>
+  </div>
 
   <script src="data.js"></script>
   <script src="app.js"></script>

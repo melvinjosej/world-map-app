@@ -145,11 +145,33 @@ html, body {
   font-weight: 700;
 }
 
-#sound-toggle {
+#floating-controls {
   position: fixed;
   bottom: 20px;
   right: 20px;
   z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#game-banner {
+  background: linear-gradient(135deg, rgba(108, 99, 255, 0.4), rgba(72, 191, 227, 0.4));
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 12px 24px;
+  margin-bottom: 20px;
+  backdrop-filter: blur(10px);
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  animation: bounceIn 0.4s ease forwards;
+  transition: opacity 0.3s ease;
+}
+
+#game-prompt {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
 }
 
 .hidden {

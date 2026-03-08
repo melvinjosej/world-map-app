@@ -10,8 +10,18 @@
   let currentCountry = null;
   let soundEnabled = true;
 
+  // ─── Game State ───
+  let isGameMode = false;
+  let targetContinent = null;
+  let score = 0;
+  const synth = window.speechSynthesis;
+
   // ─── DOM refs ───
   const worldView = document.getElementById('world-view');
+  const gameToggle = document.getElementById('game-toggle');
+  const gameBanner = document.getElementById('game-banner');
+  const gamePrompt = document.getElementById('game-prompt');
+  const worldSubtitle = document.getElementById('world-subtitle');
   const continentView = document.getElementById('continent-view');
   const factCard = document.getElementById('fact-card');
   const backBtn = document.getElementById('back-btn');
@@ -367,7 +377,44 @@
     }
   };
 
-  // ─── Audio (inline base64 beep) ───
+  // ─── Audio ───
+  function playSuccessSound() {
+    if (!soundEnabled) return;
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.1);
+      osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.2);
+      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.3);
+    } catch (e) { /* ignore */ }
+  }
+
+  function playErrorSound() {
+    if (!soundEnabled) return;
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.2);
+      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.25);
+    } catch (e) { /* ignore */ }
+  }
+
   function playTapSound() {
     if (!soundEnabled) return;
     try {
@@ -403,6 +450,59 @@
       osc.start();
       osc.stop(audioCtx.currentTime + 0.3);
     } catch (e) { /* ignore */ }
+  }
+
+  // ─── Game Logic ───
+  function speak(text) {
+    if (!soundEnabled || !synth) return;
+    synth.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.9;
+    utterance.pitch = 1.1;
+    synth.speak(utterance);
+  }
+
+  function pickNextTarget() {
+    const keys = Object.keys(WORLD_DATA);
+    let nextTarget;
+    // Don't pick the same one twice in a row if possible
+    do {
+      nextTarget = keys[Math.floor(Math.random() * keys.length)];
+    } while (nextTarget === targetContinent && keys.length > 1);
+    
+    targetContinent = nextTarget;
+    const contName = WORLD_DATA[targetContinent].name;
+    gamePrompt.textContent = `Find ${contName}!`;
+    speak(`Can you find ${contName}?`);
+  }
+
+  function startGame() {
+    isGameMode = true;
+    score = 0;
+    gameBanner.classList.remove('hidden');
+    worldSubtitle.classList.add('hidden');
+    pickNextTarget();
+  }
+
+  function stopGame() {
+    isGameMode = false;
+    gameBanner.classList.add('hidden');
+    worldSubtitle.classList.remove('hidden');
+    synth.cancel();
+  }
+
+  function handleGameClick(continentKey) {
+    if (continentKey === targetContinent) {
+      // Correct!
+      playSuccessSound();
+      speak("Great job!");
+      setTimeout(pickNextTarget, 1500);
+    } else {
+      // Incorrect
+      playErrorSound();
+      const clickedName = WORLD_DATA[continentKey].name;
+      speak(`That's ${clickedName}. Try again!`);
+    }
   }
 
   // ─── Render World Map ───
@@ -446,8 +546,12 @@
 
       // Click handler
       group.addEventListener('click', () => {
-        playTapSound();
-        navigateToContinent(key);
+        if (isGameMode) {
+          handleGameClick(key);
+        } else {
+          playTapSound();
+          navigateToContinent(key);
+        }
       });
 
       worldMap.appendChild(group);
@@ -656,10 +760,26 @@
     openTrainOverlay(currentContinent);
   });
 
-  // Sound toggle
   soundToggle.addEventListener('click', () => {
     soundEnabled = !soundEnabled;
     soundToggle.textContent = soundEnabled ? '🔊' : '🔇';
+    if (!soundEnabled && isGameMode) synth.cancel();
+  });
+
+  // Game toggle
+  gameToggle.addEventListener('click', () => {
+    playTapSound();
+    if (isGameMode) {
+      stopGame();
+    } else {
+      // Only start if we are on the world view
+      if (currentView !== 'world') {
+        goBack(); // Go back to world view if somewhere else
+        setTimeout(startGame, 400); // Wait for transition
+      } else {
+        startGame();
+      }
+    }
   });
 
   // Keyboard support
