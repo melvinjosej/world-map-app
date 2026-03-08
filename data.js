@@ -410,7 +410,7 @@ const WORLD_DATA = {
     trains: [
       { name: "The Ghan", image: "images/trains/ghan.jpg", fact: "Takes three days to travel right through the middle of the Australian desert!" },
       { name: "TranzAlpine", image: "images/trains/tranzalpine.jpg", fact: "Crosses New Zealand's beautiful snowy mountains and deep river valleys!" },
-      { name: "Jungle Express", image: "images/trains/png_train.png", fact: "Travels through the lush, green tropical rainforests of Papua New Guinea!" }
+      { name: "Tropical Jungle Train", image: "images/trains/kuranda_train.jpg", fact: "Papua New Guinea has no passenger trains, but nearby in Oceania you can ride this real train through the rainforests of Queensland!" }
     ],
     countries: {
       australia: {
