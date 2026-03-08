@@ -409,7 +409,8 @@ const WORLD_DATA = {
     description: "Islands, coral reefs, and unique animals!",
     trains: [
       { name: "The Ghan", image: "images/trains/ghan.jpg", fact: "Takes three days to travel right through the middle of the Australian desert!" },
-      { name: "TranzAlpine", image: "images/trains/tranzalpine.jpg", fact: "Crosses New Zealand's beautiful snowy mountains and deep river valleys!" }
+      { name: "TranzAlpine", image: "images/trains/tranzalpine.jpg", fact: "Crosses New Zealand's beautiful snowy mountains and deep river valleys!" },
+      { name: "Jungle Express", image: "images/trains/png_train.png", fact: "Travels through the lush, green tropical rainforests of Papua New Guinea!" }
     ],
     countries: {
       australia: {
