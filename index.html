@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>🌍 World Map Explorer</title>
+  <meta name="description" content="An interactive world map explorer for kids — tap continents and countries to discover animals, monuments, and fun facts!">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Stars background -->
+  <div id="stars"></div>
+
+  <!-- Header -->
+  <header id="app-header">
+    <button id="back-btn" class="header-btn hidden" aria-label="Go back">
+      <span class="back-arrow">←</span>
+    </button>
+    <h1 id="header-title">🌍 World Explorer</h1>
+  </header>
+
+  <!-- World View -->
+  <main id="world-view" class="view active">
+    <p class="subtitle">Tap a continent to explore!</p>
+    <div id="map-container">
+      <svg id="world-map" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+  </main>
+
+  <!-- Continent View -->
+  <main id="continent-view" class="view">
+    <div id="continent-hero">
+      <img id="continent-hero-img" src="" alt="">
+    </div>
+    <p class="subtitle" id="continent-subtitle"></p>
+    <button id="view-trains-btn" class="action-btn">🚂 View Trains</button>
+    <div id="country-grid"></div>
+  </main>
+
+  <!-- Fact Card Overlay -->
+  <div id="fact-card" class="overlay hidden">
+    <div class="fact-card-inner">
+      <div class="fact-card-header">
+        <span id="fact-flag"></span>
+        <h2 id="fact-country-name"></h2>
+        <p id="fact-capital" class="capital-text"></p>
+      </div>
+      <div id="fact-tabs" class="tab-bar"></div>
+      <div id="fact-content" class="fact-content"></div>
+      <p id="fact-fun" class="fun-fact-box"></p>
+    </div>
+  </div>
+
+  <!-- Train Overlay -->
+  <div id="train-overlay" class="overlay hidden">
+    <div class="fact-card-inner train-overlay-inner">
+      <div class="fact-card-header">
+        <h2 id="train-continent-title">Trains</h2>
+      </div>
+      <div id="train-grid" class="train-grid"></div>
+    </div>
+  </div>
+
+  <!-- Audio -->
+  <button id="sound-toggle" class="header-btn" aria-label="Toggle sound">🔊</button>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
