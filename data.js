@@ -63,6 +63,9 @@ const WORLD_DATA = {
         geology: [
           { name: "Cradle of Humankind", emoji: "🦴", fact: "Some of the oldest human bones were found here!" }
         ],
+        trains: [
+          { name: "The Blue Train", emoji: "🚄", fact: "A super fancy hotel on wheels that travels across South Africa!" }
+        ],
         funFact: "South Africa has THREE capital cities! 🏙️"
       },
       madagascar: {
@@ -129,6 +132,9 @@ const WORLD_DATA = {
           { name: "Yangtze River", emoji: "🌊", fact: "The longest river in Asia!" },
           { name: "Zhangjiajie Pillars", emoji: "⛰️", fact: "Tall stone pillars that inspired a famous movie!" }
         ],
+        trains: [
+          { name: "Shanghai Maglev", emoji: "🚄", fact: "It floats on magnets and is the fastest train in the world!" }
+        ],
         funFact: "Chinese New Year has dragon dances and fireworks! 🐉"
       },
       japan: {
@@ -146,6 +152,9 @@ const WORLD_DATA = {
         geology: [
           { name: "Hot Springs", emoji: "♨️", fact: "Japan has thousands of natural hot baths!" },
           { name: "Volcanoes", emoji: "🌋", fact: "Japan has over 100 active volcanoes!" }
+        ],
+        trains: [
+          { name: "Shinkansen", emoji: "🚅", fact: "Japan's bullet train travels up to 320 km/h and looks like a spaceship!" }
         ],
         funFact: "Japan has a train that goes faster than a race car! 🚄"
       },
@@ -213,6 +222,9 @@ const WORLD_DATA = {
           { name: "Mont Blanc", emoji: "🏔️", fact: "The tallest mountain in Western Europe!" },
           { name: "Lavender Fields", emoji: "💜", fact: "Purple flower fields that smell amazing!" }
         ],
+        trains: [
+          { name: "TGV", emoji: "🚄", fact: "France's high-speed train connects cities super fast!" }
+        ],
         funFact: "The French eat about 25,000 tons of snails every year! 🐌"
       },
       italy: {
@@ -229,6 +241,9 @@ const WORLD_DATA = {
         ],
         geology: [
           { name: "Mount Vesuvius", emoji: "🌋", fact: "The volcano that buried a whole city in ash!" }
+        ],
+        trains: [
+          { name: "Frecciarossa", emoji: "🚄", fact: "Italy's 'Red Arrow' high-speed train travels around the boot!" }
         ],
         funFact: "Italians invented pizza and ice cream! 🍕🍦"
       },
@@ -296,6 +311,9 @@ const WORLD_DATA = {
           { name: "Yellowstone", emoji: "♨️", fact: "A park sitting on top of a supervolcano!" },
           { name: "Rocky Mountains", emoji: "⛰️", fact: "Mountains stretching from Canada to New Mexico!" }
         ],
+        trains: [
+          { name: "Amtrak Acela", emoji: "🚄", fact: "The fastest train in the USA, traveling between big cities like New York and Washington!" }
+        ],
         funFact: "Americans eat 3 billion pizzas every year! 🍕"
       },
       canada: {
@@ -313,6 +331,9 @@ const WORLD_DATA = {
         ],
         geology: [
           { name: "Canadian Rockies", emoji: "🏔️", fact: "Mountains with beautiful blue glacier lakes!" }
+        ],
+        trains: [
+          { name: "Rocky Mountaineer", emoji: "🏔️", fact: "Has glass-dome roofs so you can look up at the giant mountains in Canada!" }
         ],
         funFact: "Canada produces most of the world's maple syrup! 🍁"
       },
@@ -380,6 +401,9 @@ const WORLD_DATA = {
         geology: [
           { name: "Andes Mountains", emoji: "⛰️", fact: "The longest mountain range in the world!" }
         ],
+        trains: [
+          { name: "Belmond Andean Explorer", emoji: "🏔️", fact: "One of the highest train rides in the world, traveling through the Andes mountains in Peru!" }
+        ],
         funFact: "Peru has over 3,000 types of potatoes! 🥔"
       },
       argentina: {
@@ -396,6 +420,9 @@ const WORLD_DATA = {
         geology: [
           { name: "Patagonian Steppe", emoji: "🏜️", fact: "A windy land of grass and sky at the bottom of the world!" },
           { name: "Aconcagua", emoji: "🏔️", fact: "The tallest mountain outside of Asia!" }
+        ],
+        trains: [
+          { name: "Tren a las Nubes", emoji: "☁️", fact: "Its name means 'Train to the Clouds' because it goes so high up in Argentina!" }
         ],
         funFact: "Argentina is crazy about football — it's their favorite sport! ⚽"
       }
@@ -429,6 +456,9 @@ const WORLD_DATA = {
         geology: [
           { name: "Great Barrier Reef", emoji: "🐠", fact: "The largest living thing on Earth — made by tiny coral!" },
           { name: "Outback", emoji: "🏜️", fact: "A huge dry area bigger than most countries!" }
+        ],
+        trains: [
+          { name: "The Ghan", emoji: "🏜️", fact: "Takes three days to travel right through the middle of the Australian desert!" }
         ],
         funFact: "Australia has more kangaroos than people! 🦘"
       },

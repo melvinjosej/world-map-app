@@ -625,7 +625,8 @@
     const tabs = [
       { key: 'animals', label: '🦁 Animals', data: country.animals },
       { key: 'monuments', label: '🏛️ Landmarks', data: country.monuments },
-      { key: 'geology', label: '⛰️ Nature', data: country.geology }
+      { key: 'geology', label: '⛰️ Nature', data: country.geology },
+      { key: 'trains', label: '🚂 Trains', data: country.trains || [] }
     ];
 
     factTabs.innerHTML = '';
