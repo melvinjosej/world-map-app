@@ -78,6 +78,8 @@
   
   const viewTrainsBtn = document.getElementById('view-trains-btn');
   const trainOverlay = document.getElementById('train-overlay');
+  const factCardBack = document.getElementById('fact-card-back');
+  const trainOverlayBack = document.getElementById('train-overlay-back');
   const trainContinentTitle = document.getElementById('train-continent-title');
   const trainGrid = document.getElementById('train-grid');
 
@@ -1180,6 +1182,16 @@
 
   // ─── Event Listeners ───
   backBtn.addEventListener('click', goBack);
+
+  factCardBack.addEventListener('click', () => {
+    playTapSound();
+    closeFactCard();
+  });
+
+  trainOverlayBack.addEventListener('click', () => {
+    playTapSound();
+    closeTrainOverlay();
+  });
 
   // Close fact card on overlay click
   factCard.addEventListener('click', (e) => {
