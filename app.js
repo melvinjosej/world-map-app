@@ -9,12 +9,49 @@
   let currentContinent = null;
   let currentCountry = null;
   let soundEnabled = true;
+  let openedFromWorld = false;
 
   // ─── Game State ───
   let isGameMode = false;
   let targetContinent = null;
+  let targetCountry = null;
   let score = 0;
   const synth = window.speechSynthesis;
+  let bestVoice = null;
+
+  function pickBestVoice() {
+    const voices = synth.getVoices();
+    if (!voices.length) return;
+    const prefer = [
+      'Google UK English Female',
+      'Google US English',
+      'Google UK English Male',
+      'Samantha',
+      'Karen',
+      'Daniel',
+    ];
+    for (const name of prefer) {
+      const v = voices.find(v => v.name === name);
+      if (v) { bestVoice = v; return; }
+    }
+    bestVoice = voices.find(v => v.lang.startsWith('en') && v.localService) ||
+                voices.find(v => v.lang.startsWith('en')) ||
+                voices[0];
+  }
+  if (synth) {
+    pickBestVoice();
+    synth.onvoiceschanged = pickBestVoice;
+  }
+
+  function speak(text) {
+    if (!soundEnabled || !synth) return;
+    synth.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    if (bestVoice) utter.voice = bestVoice;
+    utter.rate = 0.9;
+    utter.pitch = 1.05;
+    synth.speak(utter);
+  }
 
   // ─── DOM refs ───
   const worldView = document.getElementById('world-view');
@@ -452,28 +489,23 @@
     } catch (e) { /* ignore */ }
   }
 
-  // ─── Game Logic ───
-  function speak(text) {
-    if (!soundEnabled || !synth) return;
-    synth.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.9;
-    utterance.pitch = 1.1;
-    synth.speak(utterance);
-  }
-
   function pickNextTarget() {
-    const keys = Object.keys(WORLD_DATA);
-    let nextTarget;
-    // Don't pick the same one twice in a row if possible
+    const allCountries = [];
+    Object.entries(WORLD_DATA).forEach(([contKey, cont]) => {
+      if (!cont.countries) return;
+      Object.entries(cont.countries).forEach(([countryKey, country]) => {
+        allCountries.push({ contKey, countryKey, name: country.name, flag: country.flag });
+      });
+    });
+    let next;
     do {
-      nextTarget = keys[Math.floor(Math.random() * keys.length)];
-    } while (nextTarget === targetContinent && keys.length > 1);
-    
-    targetContinent = nextTarget;
-    const contName = WORLD_DATA[targetContinent].name;
-    gamePrompt.textContent = `Find ${contName}!`;
-    speak(`Can you find ${contName}?`);
+      next = allCountries[Math.floor(Math.random() * allCountries.length)];
+    } while (next.countryKey === targetCountry && allCountries.length > 1);
+
+    targetContinent = next.contKey;
+    targetCountry = next.countryKey;
+    gamePrompt.textContent = `Find ${next.flag} ${next.name}!`;
+    speak(`Can you find ${next.name}?`);
   }
 
   function startGame() {
@@ -481,80 +513,461 @@
     score = 0;
     gameBanner.classList.remove('hidden');
     worldSubtitle.classList.add('hidden');
+    gameToggle.textContent = '✋ Stop';
+    gameToggle.classList.add('active');
     pickNextTarget();
   }
 
   function stopGame() {
     isGameMode = false;
+    targetCountry = null;
     gameBanner.classList.add('hidden');
     worldSubtitle.classList.remove('hidden');
+    gameToggle.textContent = '🎯 Quiz';
+    gameToggle.classList.remove('active');
     synth.cancel();
   }
 
-  function handleGameClick(continentKey) {
-    if (continentKey === targetContinent) {
-      // Correct!
+  function handleGameClick(continentKey, countryKey) {
+    if (countryKey === targetCountry) {
       playSuccessSound();
-      speak("Great job!");
-      setTimeout(pickNextTarget, 1500);
+      const countryData = WORLD_DATA[continentKey]?.countries?.[countryKey];
+      speak(`Great job! That's ${countryData ? countryData.name : 'correct'}!`);
+      setTimeout(pickNextTarget, 1800);
     } else {
-      // Incorrect
       playErrorSound();
-      const clickedName = WORLD_DATA[continentKey].name;
+      const countryData = WORLD_DATA[continentKey]?.countries?.[countryKey];
+      const clickedName = countryData ? countryData.name : 'that country';
       speak(`That's ${clickedName}. Try again!`);
     }
   }
+
+  // ─── SVG path ID → data.js country/continent mapping ───
+  const COUNTRY_SVG_MAP = {
+    'adak': { continent: 'northAmerica', country: 'usa' },
+    'adak west': { continent: 'northAmerica', country: 'usa' },
+    'afghanistan': { continent: 'asia', country: 'afghanistan' },
+    'alaska': { continent: 'northAmerica', country: 'usa' },
+    'alaska-westcopy': { continent: 'northAmerica', country: 'usa' },
+    'albania': { continent: 'europe', country: 'albania' },
+    'aldabra': { continent: 'africa', country: 'seychelles' },
+    'alexander': { continent: 'antarctica', country: 'antarctica' },
+    'algeria': { continent: 'africa', country: 'algeria' },
+    'amchitka': { continent: 'northAmerica', country: 'usa' },
+    'amchitka west': { continent: 'northAmerica', country: 'usa' },
+    'amund ringnes': { continent: 'northAmerica', country: 'canada' },
+    'andros': { continent: 'northAmerica', country: 'bahamas' },
+    'angola': { continent: 'africa', country: 'angola' },
+    'another aleutian west': { continent: 'northAmerica', country: 'usa' },
+    'antarctic peninsula': { continent: 'antarctica', country: 'antarctica' },
+    'argentina': { continent: 'southAmerica', country: 'argentina' },
+    'armenia': { continent: 'asia', country: 'armenia' },
+    'attu': { continent: 'northAmerica', country: 'usa' },
+    'attu west': { continent: 'northAmerica', country: 'usa' },
+    'australia': { continent: 'oceania', country: 'australia' },
+    'austria': { continent: 'europe', country: 'austria' },
+    'axel heiberg': { continent: 'northAmerica', country: 'canada' },
+    'azerbaijan': { continent: 'asia', country: 'azerbaijan' },
+    'baffin': { continent: 'northAmerica', country: 'canada' },
+    'bali': { continent: 'asia', country: 'indonesia' },
+    'bangladesh': { continent: 'asia', country: 'bangladesh' },
+    'banks': { continent: 'northAmerica', country: 'canada' },
+    'bathurst': { continent: 'northAmerica', country: 'canada' },
+    'belarus': { continent: 'europe', country: 'belarus' },
+    'belgium': { continent: 'europe', country: 'belgium' },
+    'belize': { continent: 'northAmerica', country: 'belize' },
+    'bell': { continent: 'europe', country: 'russia' },
+    'benin': { continent: 'africa', country: 'benin' },
+    'bering island': { continent: 'asia', country: 'russia' },
+    'bhutan': { continent: 'asia', country: 'bhutan' },
+    'bimini': { continent: 'northAmerica', country: 'bahamas' },
+    'bioko': { continent: 'africa', country: 'equatorialGuinea' },
+    'bissau': { continent: 'africa', country: 'guineaBissau' },
+    'boa vista': { continent: 'africa', country: 'capeVerde' },
+    'bolivia': { continent: 'southAmerica', country: 'bolivia' },
+    'bolshevik': { continent: 'asia', country: 'russia' },
+    'bosnia': { continent: 'europe', country: 'bosnia' },
+    'botswana': { continent: 'africa', country: 'botswana' },
+    'bougainville': { continent: 'oceania', country: 'papuaNewGuinea' },
+    'brazil': { continent: 'southAmerica', country: 'brazil' },
+    'britain': { continent: 'europe', country: 'uk' },
+    'brunei': { continent: 'asia', country: 'brunei' },
+    'bulgaria': { continent: 'europe', country: 'bulgaria' },
+    'burkina': { continent: 'africa', country: 'burkinaFaso' },
+    'burma': { continent: 'asia', country: 'myanmar' },
+    'burundi': { continent: 'africa', country: 'burundi' },
+    'bylot': { continent: 'northAmerica', country: 'canada' },
+    'cabinda': { continent: 'africa', country: 'angola' },
+    'cambodia': { continent: 'asia', country: 'cambodia' },
+    'cameroon': { continent: 'africa', country: 'cameroon' },
+    'canada': { continent: 'northAmerica', country: 'canada' },
+    'casamance': { continent: 'africa', country: 'senegal' },
+    'cebu': { continent: 'asia', country: 'philippines' },
+    'centrafrique': { continent: 'africa', country: 'centralAfricanRepublic' },
+    'chad': { continent: 'africa', country: 'chad' },
+    'chile': { continent: 'southAmerica', country: 'chile' },
+    'chiloe': { continent: 'southAmerica', country: 'chile' },
+    'china': { continent: 'asia', country: 'china' },
+    'choiseul': { continent: 'oceania', country: 'solomonIslands' },
+    'chukotka': { continent: 'asia', country: 'russia' },
+    'colombia': { continent: 'southAmerica', country: 'colombia' },
+    'congo': { continent: 'africa', country: 'congo' },
+    'cornwallis': { continent: 'northAmerica', country: 'canada' },
+    'corsica': { continent: 'europe', country: 'france' },
+    'costa rica': { continent: 'northAmerica', country: 'costaRica' },
+    'crete': { continent: 'europe', country: 'greece' },
+    'croatia': { continent: 'europe', country: 'croatia' },
+    'cuba': { continent: 'northAmerica', country: 'cuba' },
+    'cyprus': { continent: 'europe', country: 'cyprus' },
+    'czech': { continent: 'europe', country: 'czechRepublic' },
+    'denmark': { continent: 'europe', country: 'denmark' },
+    'devon': { continent: 'northAmerica', country: 'canada' },
+    'disko': { continent: 'northAmerica', country: 'greenland' },
+    'djibouti': { continent: 'africa', country: 'djibouti' },
+    'domincan republic': { continent: 'northAmerica', country: 'dominicanRepublic' },
+    'dominica': { continent: 'northAmerica', country: 'dominica' },
+    'drc': { continent: 'africa', country: 'drCongo' },
+    'east antarctica': { continent: 'antarctica', country: 'antarctica' },
+    'east malaysia': { continent: 'asia', country: 'malaysia' },
+    'ecuador': { continent: 'southAmerica', country: 'ecuador' },
+    'edgeoya': { continent: 'europe', country: 'norway' },
+    'efate': { continent: 'oceania', country: 'vanuatu' },
+    'eglinton': { continent: 'northAmerica', country: 'canada' },
+    'egypt': { continent: 'africa', country: 'egypt' },
+    'el salvador': { continent: 'northAmerica', country: 'elSalvador' },
+    'elephant': { continent: 'antarctica', country: 'antarctica' },
+    'eleuthera': { continent: 'northAmerica', country: 'bahamas' },
+    'ellef ringnes': { continent: 'northAmerica', country: 'canada' },
+    'ellesmere': { continent: 'northAmerica', country: 'canada' },
+    'emirates': { continent: 'asia', country: 'uae' },
+    'equatorial guinea': { continent: 'africa', country: 'equatorialGuinea' },
+    'eritrea': { continent: 'africa', country: 'eritrea' },
+    'espiritu santo': { continent: 'oceania', country: 'vanuatu' },
+    'estonia': { continent: 'europe', country: 'estonia' },
+    'ethiopia': { continent: 'africa', country: 'ethiopia' },
+    'falklands east': { continent: 'southAmerica', country: 'argentina' },
+    'falklands west': { continent: 'southAmerica', country: 'argentina' },
+    'fiji': { continent: 'oceania', country: 'fiji' },
+    'finland': { continent: 'europe', country: 'finland' },
+    'flores': { continent: 'asia', country: 'indonesia' },
+    'france': { continent: 'europe', country: 'france' },
+    'gabon': { continent: 'africa', country: 'gabon' },
+    'galapagos': { continent: 'southAmerica', country: 'ecuador' },
+    'gambia': { continent: 'africa', country: 'gambia' },
+    'gan': { continent: 'asia', country: 'maldives' },
+    'georgia': { continent: 'asia', country: 'georgia' },
+    'germany': { continent: 'europe', country: 'germany' },
+    'ghana': { continent: 'africa', country: 'ghana' },
+    'gotland': { continent: 'europe', country: 'sweden' },
+    'gran canaria': { continent: 'europe', country: 'spain' },
+    'grand bahama': { continent: 'northAmerica', country: 'bahamas' },
+    'grande comore': { continent: 'africa', country: 'comoros' },
+    'greece': { continent: 'europe', country: 'greece' },
+    'greenland': { continent: 'northAmerica', country: 'greenland' },
+    'grenada': { continent: 'northAmerica', country: 'grenada' },
+    'guadeloupe': { continent: 'northAmerica', country: 'guadeloupe' },
+    'guatemala': { continent: 'northAmerica', country: 'guatemala' },
+    'guinee': { continent: 'africa', country: 'guinea' },
+    'guyana': { continent: 'southAmerica', country: 'guyana' },
+    'guyane': { continent: 'southAmerica', country: 'frenchGuiana' },
+    'haida gwaii': { continent: 'northAmerica', country: 'canada' },
+    'hainan': { continent: 'asia', country: 'china' },
+    'haiti': { continent: 'northAmerica', country: 'haiti' },
+    'haiti-dominican border': { continent: 'northAmerica', country: 'haiti' },
+    'hawaii': { continent: 'northAmerica', country: 'usa' },
+    'hiumaa': { continent: 'europe', country: 'estonia' },
+    'hokkaido': { continent: 'asia', country: 'japan' },
+    'honduras': { continent: 'northAmerica', country: 'honduras' },
+    'honshu': { continent: 'asia', country: 'japan' },
+    'hungary': { continent: 'europe', country: 'hungary' },
+    'iceland': { continent: 'europe', country: 'iceland' },
+    'inagua': { continent: 'northAmerica', country: 'bahamas' },
+    'india': { continent: 'asia', country: 'india' },
+    'iran': { continent: 'asia', country: 'iran' },
+    'iraq': { continent: 'asia', country: 'iraq' },
+    'ireland': { continent: 'europe', country: 'ireland' },
+    'irian jaya': { continent: 'asia', country: 'indonesia' },
+    'israel': { continent: 'asia', country: 'israel' },
+    'italy': { continent: 'europe', country: 'italy' },
+    'iturup': { continent: 'asia', country: 'russia' },
+    'ivoire': { continent: 'africa', country: 'ivoryCoast' },
+    'jamaica': { continent: 'northAmerica', country: 'jamaica' },
+    'james ross': { continent: 'antarctica', country: 'antarctica' },
+    'java': { continent: 'asia', country: 'indonesia' },
+    'jordan': { continent: 'asia', country: 'jordan' },
+    'kahului': { continent: 'northAmerica', country: 'usa' },
+    'kalimantan': { continent: 'asia', country: 'indonesia' },
+    'kauai': { continent: 'northAmerica', country: 'usa' },
+    'kazakhstan': { continent: 'asia', country: 'kazakhstan' },
+    'kenya': { continent: 'africa', country: 'kenya' },
+    'kerguelen': { continent: 'antarctica', country: 'antarctica' },
+    'king christian': { continent: 'northAmerica', country: 'canada' },
+    'king george': { continent: 'antarctica', country: 'antarctica' },
+    'kirgizstan': { continent: 'asia', country: 'kyrgyzstan' },
+    'komsomolets': { continent: 'asia', country: 'russia' },
+    'kotelny': { continent: 'asia', country: 'russia' },
+    'kuwait': { continent: 'asia', country: 'kuwait' },
+    'kyushu': { continent: 'asia', country: 'japan' },
+    'lanzarote': { continent: 'europe', country: 'spain' },
+    'laos': { continent: 'asia', country: 'laos' },
+    'lebanon': { continent: 'asia', country: 'lebanon' },
+    'lesotho': { continent: 'africa', country: 'lesotho' },
+    'liberia': { continent: 'africa', country: 'liberia' },
+    'libya': { continent: 'africa', country: 'libya' },
+    'lithuania': { continent: 'europe', country: 'lithuania' },
+    'lombok': { continent: 'asia', country: 'indonesia' },
+    'luzon': { continent: 'asia', country: 'philippines' },
+    'lyakhovsky': { continent: 'asia', country: 'russia' },
+    'macedonia': { continent: 'europe', country: 'northMacedonia' },
+    'mackenzie king': { continent: 'northAmerica', country: 'canada' },
+    'madagascar': { continent: 'africa', country: 'madagascar' },
+    'madeira': { continent: 'europe', country: 'portugal' },
+    'mahe': { continent: 'africa', country: 'seychelles' },
+    'majorca': { continent: 'europe', country: 'spain' },
+    'malaita': { continent: 'oceania', country: 'solomonIslands' },
+    'malakula': { continent: 'oceania', country: 'vanuatu' },
+    'malawi': { continent: 'africa', country: 'malawi' },
+    'malaysia': { continent: 'asia', country: 'malaysia' },
+    'maldive': { continent: 'asia', country: 'maldives' },
+    'male': { continent: 'asia', country: 'maldives' },
+    'mali': { continent: 'africa', country: 'mali' },
+    'malta': { continent: 'europe', country: 'malta' },
+    'maluku': { continent: 'asia', country: 'indonesia' },
+    'martinique': { continent: 'northAmerica', country: 'martinique' },
+    'mauretania': { continent: 'africa', country: 'mauritania' },
+    'mauritius': { continent: 'africa', country: 'mauritius' },
+    'mayotte': { continent: 'africa', country: 'comoros' },
+    'medny': { continent: 'asia', country: 'russia' },
+    'mexico': { continent: 'northAmerica', country: 'mexico' },
+    'milne': { continent: 'antarctica', country: 'antarctica' },
+    'mindoro': { continent: 'asia', country: 'philippines' },
+    'moldova': { continent: 'europe', country: 'moldova' },
+    'mongolia': { continent: 'asia', country: 'mongolia' },
+    'montenegro': { continent: 'europe', country: 'montenegro' },
+    'morocco': { continent: 'africa', country: 'morocco' },
+    'mozambique': { continent: 'africa', country: 'mozambique' },
+    'namibia': { continent: 'africa', country: 'namibia' },
+    'negros': { continent: 'asia', country: 'philippines' },
+    'nepal': { continent: 'asia', country: 'nepal' },
+    'netherlands': { continent: 'europe', country: 'netherlands' },
+    'new britain': { continent: 'oceania', country: 'papuaNewGuinea' },
+    'new caledonia': { continent: 'oceania', country: 'newCaledonia' },
+    'new georgia': { continent: 'oceania', country: 'solomonIslands' },
+    'new ireland': { continent: 'oceania', country: 'papuaNewGuinea' },
+    'new zealand north island': { continent: 'oceania', country: 'newZealand' },
+    'new zealand south island': { continent: 'oceania', country: 'newZealand' },
+    'newfoundland': { continent: 'northAmerica', country: 'canada' },
+    'nicaragua': { continent: 'northAmerica', country: 'nicaragua' },
+    'niger': { continent: 'africa', country: 'niger' },
+    'nigeria': { continent: 'africa', country: 'nigeria' },
+    'nordaustlandet': { continent: 'europe', country: 'norway' },
+    'north korea': { continent: 'asia', country: 'northKorea' },
+    'norway': { continent: 'europe', country: 'norway' },
+    'novaya sibir': { continent: 'asia', country: 'russia' },
+    'novaya zemlya north': { continent: 'europe', country: 'russia' },
+    'novaya zemlya south': { continent: 'europe', country: 'russia' },
+    'oahu': { continent: 'northAmerica', country: 'usa' },
+    'october': { continent: 'asia', country: 'russia' },
+    'oman': { continent: 'asia', country: 'oman' },
+    'onekotan': { continent: 'asia', country: 'russia' },
+    'pakistan': { continent: 'asia', country: 'pakistan' },
+    'palawan': { continent: 'asia', country: 'philippines' },
+    'panama': { continent: 'northAmerica', country: 'panama' },
+    'papua new guinea': { continent: 'oceania', country: 'papuaNewGuinea' },
+    'paraguay': { continent: 'southAmerica', country: 'paraguay' },
+    'paramushir': { continent: 'asia', country: 'russia' },
+    'peru': { continent: 'southAmerica', country: 'peru' },
+    'pico': { continent: 'europe', country: 'portugal' },
+    'poland': { continent: 'europe', country: 'poland' },
+    'portugal': { continent: 'europe', country: 'portugal' },
+    'praslin': { continent: 'africa', country: 'seychelles' },
+    'prescott': { continent: 'northAmerica', country: 'canada' },
+    'prince george': { continent: 'northAmerica', country: 'canada' },
+    'prince of wales': { continent: 'northAmerica', country: 'canada' },
+    'prince patrick': { continent: 'northAmerica', country: 'canada' },
+    'principe': { continent: 'africa', country: 'saoTome' },
+    'puerto rico': { continent: 'northAmerica', country: 'puertoRico' },
+    'qatar': { continent: 'asia', country: 'qatar' },
+    'raiatea': { continent: 'oceania', country: 'frenchPolynesia' },
+    'rennell': { continent: 'oceania', country: 'solomonIslands' },
+    'reunion': { continent: 'africa', country: 'mauritius' },
+    'robert': { continent: 'antarctica', country: 'antarctica' },
+    'romania': { continent: 'europe', country: 'romania' },
+    'russia': { continent: 'asia', country: 'russia' },
+    'rwanda': { continent: 'africa', country: 'rwanda' },
+    'saaremaa': { continent: 'europe', country: 'estonia' },
+    'sakhalin': { continent: 'asia', country: 'russia' },
+    'salisbury': { continent: 'europe', country: 'norway' },
+    'samar': { continent: 'asia', country: 'philippines' },
+    'santa ana': { continent: 'oceania', country: 'solomonIslands' },
+    'santa isabel': { continent: 'oceania', country: 'solomonIslands' },
+    'santiago': { continent: 'africa', country: 'capeVerde' },
+    'santo antao': { continent: 'africa', country: 'capeVerde' },
+    'sao miguel': { continent: 'europe', country: 'portugal' },
+    'sao tome': { continent: 'africa', country: 'saoTome' },
+    'sardinia': { continent: 'europe', country: 'italy' },
+    'saudi': { continent: 'asia', country: 'saudiArabia' },
+    'senegal': { continent: 'africa', country: 'senegal' },
+    'seram': { continent: 'asia', country: 'indonesia' },
+    'serbia': { continent: 'europe', country: 'serbia' },
+    'shikoku': { continent: 'asia', country: 'japan' },
+    'sicily': { continent: 'europe', country: 'italy' },
+    'sierra leone': { continent: 'africa', country: 'sierraLeone' },
+    'sjælland': { continent: 'europe', country: 'denmark' },
+    'slovakia': { continent: 'europe', country: 'slovakia' },
+    'slovenia': { continent: 'europe', country: 'slovenia' },
+    'smyley': { continent: 'antarctica', country: 'antarctica' },
+    'somalia': { continent: 'africa', country: 'somalia' },
+    'somaliland': { continent: 'africa', country: 'somalia' },
+    'soqotra': { continent: 'asia', country: 'yemen' },
+    'south africa': { continent: 'africa', country: 'southAfrica' },
+    'south korea': { continent: 'asia', country: 'southKorea' },
+    'south_sudan': { continent: 'africa', country: 'southSudan' },
+    'southhampton': { continent: 'northAmerica', country: 'canada' },
+    'spain': { continent: 'europe', country: 'spain' },
+    'spitsbergen': { continent: 'europe', country: 'norway' },
+    'sri lanka': { continent: 'asia', country: 'sriLanka' },
+    'st. lawrence island': { continent: 'northAmerica', country: 'usa' },
+    'st. lawrence island west': { continent: 'northAmerica', country: 'usa' },
+    'st. lucia': { continent: 'northAmerica', country: 'stLucia' },
+    'st. vincent': { continent: 'northAmerica', country: 'stVincent' },
+    'sudan': { continent: 'africa', country: 'sudan' },
+    'sulawesi': { continent: 'asia', country: 'indonesia' },
+    'sumatra': { continent: 'asia', country: 'indonesia' },
+    'sumba': { continent: 'asia', country: 'indonesia' },
+    'suriname': { continent: 'southAmerica', country: 'suriname' },
+    'swaziland': { continent: 'africa', country: 'eswatini' },
+    'sweden': { continent: 'europe', country: 'sweden' },
+    'switzerland': { continent: 'europe', country: 'switzerland' },
+    'syria': { continent: 'asia', country: 'syria' },
+    'tahiti': { continent: 'oceania', country: 'frenchPolynesia' },
+    'taiwan': { continent: 'asia', country: 'taiwan' },
+    'tajikistan': { continent: 'asia', country: 'tajikistan' },
+    'tanzania': { continent: 'africa', country: 'tanzania' },
+    'tasmania': { continent: 'oceania', country: 'australia' },
+    'tenerife': { continent: 'europe', country: 'spain' },
+    'terceira': { continent: 'europe', country: 'portugal' },
+    'thailand': { continent: 'asia', country: 'thailand' },
+    'thrace': { continent: 'europe', country: 'greece' },
+    'thurston': { continent: 'antarctica', country: 'antarctica' },
+    'tierra del fuego argentina': { continent: 'southAmerica', country: 'argentina' },
+    'tierra del fuego chile': { continent: 'southAmerica', country: 'chile' },
+    'timor': { continent: 'asia', country: 'timorLeste' },
+    'togo': { continent: 'africa', country: 'togo' },
+    'trinidad': { continent: 'northAmerica', country: 'trinidadAndTobago' },
+    'tunisia': { continent: 'africa', country: 'tunisia' },
+    'turkey': { continent: 'asia', country: 'turkey' },
+    'turkmenistan': { continent: 'asia', country: 'turkmenistan' },
+    'uganda': { continent: 'africa', country: 'uganda' },
+    'ukraine': { continent: 'europe', country: 'ukraine' },
+    'ulster': { continent: 'europe', country: 'uk' },
+    'umnak': { continent: 'northAmerica', country: 'usa' },
+    'umnak west': { continent: 'northAmerica', country: 'usa' },
+    'unalaska': { continent: 'northAmerica', country: 'usa' },
+    'unalaska west': { continent: 'northAmerica', country: 'usa' },
+    'uruguay': { continent: 'southAmerica', country: 'uruguay' },
+    'urup': { continent: 'asia', country: 'russia' },
+    'usa': { continent: 'northAmerica', country: 'usa' },
+    'uzbekistan': { continent: 'asia', country: 'uzbekistan' },
+    'vancouver': { continent: 'northAmerica', country: 'canada' },
+    'venezuela': { continent: 'southAmerica', country: 'venezuela' },
+    'victoria': { continent: 'northAmerica', country: 'canada' },
+    'vietnam': { continent: 'asia', country: 'vietnam' },
+    'wilczek': { continent: 'europe', country: 'russia' },
+    'wrangel': { continent: 'asia', country: 'russia' },
+    'wrangel-w': { continent: 'asia', country: 'russia' },
+    'yemen': { continent: 'asia', country: 'yemen' },
+    'zambia': { continent: 'africa', country: 'zambia' },
+    'zimbabwe': { continent: 'africa', country: 'zimbabwe' },
+  };
+
 
   // ─── Render World Map ───
   function renderWorldMap() {
     worldMap.innerHTML = '';
 
-    // Draw each continent
+    const parser = new DOMParser();
+    const svgDoc = parser.parseFromString(WORLD_MAP_SVG, 'image/svg+xml');
+    const svgEl = svgDoc.documentElement;
+
+    worldMap.setAttribute('viewBox', svgEl.getAttribute('viewBox'));
+
+    const allPaths = svgEl.querySelectorAll('path');
+    allPaths.forEach(path => {
+      const id = path.getAttribute('id');
+      const newPath = path.cloneNode(true);
+      newPath.removeAttribute('style');
+
+      const mapping = COUNTRY_SVG_MAP[id];
+      if (mapping) {
+        const contData = WORLD_DATA[mapping.continent];
+        if (!contData || !contData.countries || !contData.countries[mapping.country]) {
+          newPath.setAttribute('fill', 'rgba(255,255,255,0.08)');
+          worldMap.appendChild(newPath);
+          return;
+        }
+        newPath.setAttribute('fill', contData.color);
+        newPath.classList.add('country-path');
+        newPath.dataset.continent = mapping.continent;
+        newPath.dataset.country = mapping.country;
+        newPath.style.filter = `drop-shadow(0 0 6px ${contData.glowColor})`;
+
+        newPath.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (isGameMode) {
+            handleGameClick(mapping.continent, mapping.country);
+          } else {
+            playOpenSound();
+            currentContinent = mapping.continent;
+            openedFromWorld = true;
+            const countryData = contData.countries[mapping.country];
+            if (countryData) speak(countryData.name);
+            openFactCard(mapping.continent, mapping.country);
+          }
+        });
+      } else {
+        newPath.setAttribute('fill', 'rgba(255,255,255,0.08)');
+        newPath.setAttribute('stroke', 'rgba(255,255,255,0.05)');
+        newPath.setAttribute('stroke-width', '0.5');
+      }
+
+      worldMap.appendChild(newPath);
+    });
+
     Object.entries(CONTINENT_PATHS).forEach(([key, continent]) => {
       const data = WORLD_DATA[key];
       if (!data) return;
 
-      const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      group.classList.add('continent-group');
-      group.dataset.continent = key;
+      const labelGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      labelGroup.classList.add('continent-label-group');
+      labelGroup.style.cursor = 'pointer';
 
-      // Draw paths
-      continent.paths.forEach(d => {
-        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        path.setAttribute('d', d);
-        path.setAttribute('fill', data.color);
-        path.style.filter = `drop-shadow(0 0 12px ${data.glowColor})`;
-        group.appendChild(path);
-      });
-
-      // Emoji label
       const emoji = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       emoji.classList.add('continent-emoji');
       emoji.setAttribute('x', continent.emojiX);
       emoji.setAttribute('y', continent.emojiY);
       emoji.setAttribute('text-anchor', 'middle');
       emoji.textContent = data.emoji;
-      group.appendChild(emoji);
+      labelGroup.appendChild(emoji);
 
-      // Text label
       const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       label.classList.add('continent-label');
       label.setAttribute('x', continent.labelX);
       label.setAttribute('y', continent.labelY);
       label.textContent = data.name;
-      group.appendChild(label);
+      labelGroup.appendChild(label);
 
-      // Click handler
-      group.addEventListener('click', () => {
+      labelGroup.addEventListener('click', () => {
         if (isGameMode) {
-          handleGameClick(key);
+          return;
         } else {
           playTapSound();
+          speak(data.name);
           navigateToContinent(key);
         }
       });
 
-      worldMap.appendChild(group);
+      worldMap.appendChild(labelGroup);
     });
   }
 
@@ -599,6 +1012,7 @@
 
       card.addEventListener('click', () => {
         playOpenSound();
+        speak(country.name);
         openFactCard(continentKey, key);
       });
 
@@ -621,6 +1035,11 @@
     factCapital.textContent = `🏛️ Capital: ${country.capital}`;
     factFun.textContent = country.funFact;
 
+    if (openedFromWorld) {
+      headerTitle.textContent = `${country.flag} ${country.name}`;
+      backBtn.classList.remove('hidden');
+    }
+
     // Build tabs
     const tabs = [
       { key: 'animals', label: '🦁 Animals', data: country.animals },
@@ -640,6 +1059,7 @@
         btn.classList.add('active');
         renderFactItems(tab.data);
         playTapSound();
+        speak(tab.label.replace(/[^\w\s]/g, '').trim());
       });
       factTabs.appendChild(btn);
     });
@@ -659,13 +1079,27 @@
     items.forEach(item => {
       const div = document.createElement('div');
       div.classList.add('fact-item');
+
+      let mediaHtml;
+      if (item.image) {
+        mediaHtml = `<img class="fact-item-img" src="${item.image}" alt="${item.name}" onerror="this.outerHTML='<div class=\\'fact-item-emoji-fallback\\'>${item.emoji}</div>'">`;
+      } else {
+        mediaHtml = `<div class="fact-item-emoji-fallback">${item.emoji}</div>`;
+      }
+
       div.innerHTML = `
-        <span class="fact-emoji">${item.emoji}</span>
-        <div class="fact-text">
-          <span class="fact-name">${item.name}</span>
-          <span class="fact-desc">${item.fact}</span>
+        ${mediaHtml}
+        <div class="fact-item-body">
+          <div class="fact-text">
+            <span class="fact-name">${item.emoji} ${item.name}</span>
+            <span class="fact-desc">${item.fact}</span>
+          </div>
         </div>
       `;
+      div.addEventListener('click', () => {
+        speak(`${item.name}. ${item.fact}`);
+      });
+      div.style.cursor = 'pointer';
       factContent.appendChild(div);
     });
   }
@@ -676,7 +1110,15 @@
     setTimeout(() => {
       factCard.classList.add('hidden');
     }, 350);
-    currentView = 'continent';
+    if (openedFromWorld) {
+      currentView = 'world';
+      currentContinent = null;
+      openedFromWorld = false;
+      headerTitle.textContent = '🌍 World Explorer';
+      backBtn.classList.add('hidden');
+    } else {
+      currentView = 'continent';
+    }
     currentCountry = null;
   }
 
