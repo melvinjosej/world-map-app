@@ -4,6 +4,12 @@
 (function () {
   'use strict';
 
+  let audioCtx = null;
+  function getAudioCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+  }
+
   // ─── State ───
   let currentView = 'world'; // 'world' | 'continent' | 'factCard' | 'trainCard'
   let currentContinent = null;
@@ -43,14 +49,18 @@
     synth.onvoiceschanged = pickBestVoice;
   }
 
+  let speakTimeout = null;
   function speak(text) {
     if (!soundEnabled || !synth) return;
-    synth.cancel();
-    const utter = new SpeechSynthesisUtterance(text);
-    if (bestVoice) utter.voice = bestVoice;
-    utter.rate = 0.9;
-    utter.pitch = 1.05;
-    synth.speak(utter);
+    clearTimeout(speakTimeout);
+    speakTimeout = setTimeout(() => {
+      synth.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      if (bestVoice) utter.voice = bestVoice;
+      utter.rate = 0.9;
+      utter.pitch = 1.05;
+      synth.speak(utter);
+    }, 80);
   }
 
   // ─── DOM refs ───
@@ -457,37 +467,37 @@
   function playTapSound() {
     if (!soundEnabled) return;
     try {
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
+      const ctx = getAudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
       osc.connect(gain);
-      gain.connect(audioCtx.destination);
+      gain.connect(ctx.destination);
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(900, audioCtx.currentTime + 0.1);
-      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+      osc.frequency.setValueAtTime(600, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(900, ctx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
       osc.start();
-      osc.stop(audioCtx.currentTime + 0.2);
+      osc.stop(ctx.currentTime + 0.2);
     } catch (e) { /* ignore audio errors */ }
   }
 
   function playOpenSound() {
     if (!soundEnabled) return;
     try {
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
+      const ctx = getAudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
       osc.connect(gain);
-      gain.connect(audioCtx.destination);
+      gain.connect(ctx.destination);
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.15);
-      osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.25);
-      gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+      osc.frequency.setValueAtTime(400, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.15);
+      osc.frequency.exponentialRampToValueAtTime(1000, ctx.currentTime + 0.25);
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
       osc.start();
-      osc.stop(audioCtx.currentTime + 0.3);
+      osc.stop(ctx.currentTime + 0.3);
     } catch (e) { /* ignore */ }
   }
 
@@ -885,27 +895,38 @@
 
 
   // ─── Render World Map ───
+  let cachedSvgPaths = null;
+
   function renderWorldMap() {
     worldMap.innerHTML = '';
 
-    const parser = new DOMParser();
-    const svgDoc = parser.parseFromString(WORLD_MAP_SVG, 'image/svg+xml');
-    const svgEl = svgDoc.documentElement;
+    if (!cachedSvgPaths) {
+      const parser = new DOMParser();
+      const svgDoc = parser.parseFromString(WORLD_MAP_SVG, 'image/svg+xml');
+      const svgEl = svgDoc.documentElement;
+      worldMap.setAttribute('viewBox', svgEl.getAttribute('viewBox'));
+      cachedSvgPaths = Array.from(svgEl.querySelectorAll('path')).map(path => ({
+        id: path.getAttribute('id'),
+        d: path.getAttribute('d'),
+        attrs: Array.from(path.attributes).reduce((acc, attr) => {
+          if (attr.name !== 'style') acc[attr.name] = attr.value;
+          return acc;
+        }, {})
+      }));
+    }
 
-    worldMap.setAttribute('viewBox', svgEl.getAttribute('viewBox'));
+    const frag = document.createDocumentFragment();
 
-    const allPaths = svgEl.querySelectorAll('path');
-    allPaths.forEach(path => {
-      const id = path.getAttribute('id');
-      const newPath = path.cloneNode(true);
-      newPath.removeAttribute('style');
+    cachedSvgPaths.forEach(pathData => {
+      const newPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      Object.entries(pathData.attrs).forEach(([k, v]) => newPath.setAttribute(k, v));
 
-      const mapping = COUNTRY_SVG_MAP[id];
+      const mapping = COUNTRY_SVG_MAP[pathData.id];
       if (mapping) {
         const contData = WORLD_DATA[mapping.continent];
         if (!contData || !contData.countries || !contData.countries[mapping.country]) {
           newPath.setAttribute('fill', 'rgba(255,255,255,0.08)');
-          worldMap.appendChild(newPath);
+          frag.appendChild(newPath);
           return;
         }
         newPath.setAttribute('fill', contData.color);
@@ -913,27 +934,13 @@
         newPath.dataset.continent = mapping.continent;
         newPath.dataset.country = mapping.country;
         newPath.style.filter = `drop-shadow(0 0 6px ${contData.glowColor})`;
-
-        newPath.addEventListener('click', (e) => {
-          e.stopPropagation();
-          if (isGameMode) {
-            handleGameClick(mapping.continent, mapping.country);
-          } else {
-            playOpenSound();
-            currentContinent = mapping.continent;
-            openedFromWorld = true;
-            const countryData = contData.countries[mapping.country];
-            if (countryData) speak(countryData.name);
-            openFactCard(mapping.continent, mapping.country);
-          }
-        });
       } else {
         newPath.setAttribute('fill', 'rgba(255,255,255,0.08)');
         newPath.setAttribute('stroke', 'rgba(255,255,255,0.05)');
         newPath.setAttribute('stroke-width', '0.5');
       }
 
-      worldMap.appendChild(newPath);
+      frag.appendChild(newPath);
     });
 
     Object.entries(CONTINENT_PATHS).forEach(([key, continent]) => {
@@ -943,6 +950,7 @@
       const labelGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       labelGroup.classList.add('continent-label-group');
       labelGroup.style.cursor = 'pointer';
+      labelGroup.dataset.continent = key;
 
       const emoji = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       emoji.classList.add('continent-emoji');
@@ -959,17 +967,40 @@
       label.textContent = data.name;
       labelGroup.appendChild(label);
 
-      labelGroup.addEventListener('click', () => {
+      frag.appendChild(labelGroup);
+    });
+
+    worldMap.appendChild(frag);
+
+    worldMap.addEventListener('click', (e) => {
+      const path = e.target.closest('.country-path');
+      if (path) {
+        e.stopPropagation();
+        const cont = path.dataset.continent;
+        const ctry = path.dataset.country;
         if (isGameMode) {
-          return;
+          handleGameClick(cont, ctry);
         } else {
+          playOpenSound();
+          currentContinent = cont;
+          openedFromWorld = true;
+          const countryData = WORLD_DATA[cont]?.countries?.[ctry];
+          if (countryData) speak(countryData.name);
+          openFactCard(cont, ctry);
+        }
+        return;
+      }
+
+      const labelGroup = e.target.closest('.continent-label-group');
+      if (labelGroup) {
+        const key = labelGroup.dataset.continent;
+        if (key && !isGameMode) {
           playTapSound();
-          speak(data.name);
+          const data = WORLD_DATA[key];
+          if (data) speak(data.name);
           navigateToContinent(key);
         }
-      });
-
-      worldMap.appendChild(labelGroup);
+      }
     });
   }
 
@@ -1254,5 +1285,11 @@
 
   // ─── Initialize ───
   renderWorldMap();
+
+  const splash = document.getElementById('splash-screen');
+  if (splash) {
+    splash.classList.add('fade-out');
+    setTimeout(() => splash.remove(), 600);
+  }
 
 })();
