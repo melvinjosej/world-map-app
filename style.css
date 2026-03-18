@@ -96,7 +96,7 @@ html, body {
   100% { opacity: 1; }
 }
 
-.overlay.visible ~ #stars { animation-play-state: paused; }
+body:has(.overlay.visible) #stars { animation-play-state: paused; }
 
 /* --- Header --- */
 #app-header {
@@ -158,18 +158,14 @@ html, body {
 }
 
 .quiz-btn {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 100;
-  padding: 14px 40px;
+  position: relative;
+  padding: 12px 24px;
   border: none;
   border-radius: 50px;
   background: linear-gradient(135deg, #6C63FF, #48BFE3);
   color: white;
   font-family: var(--font);
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 800;
   letter-spacing: 0.5px;
   cursor: pointer;
@@ -181,7 +177,7 @@ html, body {
 }
 
 .quiz-btn:hover, .quiz-btn:active {
-  transform: translateX(-50%) translateY(-3px) scale(1.05);
+  transform: translateY(-3px) scale(1.05);
   box-shadow: 0 10px 32px rgba(108, 99, 255, 0.5), 0 0 60px rgba(108, 99, 255, 0.2);
 }
 
@@ -259,7 +255,6 @@ html, body {
   width: 100%;
   height: auto;
   max-height: 70vh;
-  filter: drop-shadow(0 0 30px rgba(108, 99, 255, 0.15));
 }
 
 .continent-group {
@@ -738,9 +733,7 @@ html, body {
   50% { opacity: 1; }
 }
 
-.continent-label {
-  animation: gentlePulse 3s ease-in-out infinite;
-}
+/* Continuous pulse animation removed for performance */
 
 /* --- Loading state --- */
 .loading {
@@ -784,6 +777,28 @@ html, body {
 /* --- Train Overlay & Cards --- */
 .train-overlay-inner {
   max-width: 700px;
+}
+
+.train-image-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  position: relative;
+}
+
+#train-pop-img {
+  width: 100%;
+  height: auto;
+  max-height: 75vh;
+  border-radius: var(--radius);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+  object-fit: contain;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #111;
 }
 
 .train-grid {
@@ -925,4 +940,112 @@ html, body {
 .train-card:active {
   transform: scale(0.97);
   transition-duration: 0.08s;
+}
+
+/* --- Mode Controls Container --- */
+#mode-controls {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  gap: 12px;
+}
+
+/* --- Side Panel (Travel Journal) --- */
+.side-panel {
+  position: fixed;
+  top: 70px;
+  right: 20px;
+  width: 300px;
+  background: rgba(30, 33, 50, 0.85);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm);
+  z-index: 100;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.side-panel.hidden {
+  transform: translateX(120%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-bottom: 8px;
+}
+
+.panel-header h3 {
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.journal-summary {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+#journal-list {
+  list-style: none;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+#journal-list li {
+  font-size: 0.85rem;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.02);
+  margin-bottom: 4px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* --- Train Tracks (SVG) --- */
+.train-track {
+  fill: none;
+  stroke: #ffd700; /* Gold */
+  stroke-width: 2.5;
+  stroke-dasharray: 6 6;
+  filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.8));
+  animation: dash 1.5s linear infinite;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -12;
+  }
+}
+
+.station-marker {
+  fill: #ffd700;
+  stroke: #fff;
+  stroke-width: 1.5;
+  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 1));
+  animation: pulse 1.5s ease infinite alternate;
+}
+
+@keyframes pulse {
+  from { opacity: 0.8; }
+  to { opacity: 1; filter: drop-shadow(0 0 12px rgba(255, 215, 0, 1)); }
 }

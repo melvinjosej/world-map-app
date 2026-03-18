@@ -8,7 +8,7 @@ const WORLD_DATA = {
     trains: [
       { name: "The Blue Train", emoji: "🚂", fact: "A super fancy hotel on wheels that travels 1,600 km across South Africa with crystal glasses and fancy beds!", image: "images/trains/blue_train.jpg" },
       { name: "Rovos Rail", emoji: "🚂", fact: "Called the most luxurious train in the world — it has real wood furniture and a fancy dining car!" },
-      { name: "Madaraka Express", emoji: "🚂", fact: "Kenya's modern train zooms between Nairobi and Mombasa in just 4.5 hours!" },
+      { name: "Madaraka Express", emoji: "🚂", fact: "Kenya's modern train zooms between Nairobi and Mombasa in just 4.5 hours!", image: "images/trains/madaraka_express.png" },
       { name: "Al Boraq", emoji: "🚂", fact: "Africa's very first high-speed train in Morocco goes 320 km/h — as fast as a race car!" }
     ],
     countries: {
@@ -29,7 +29,7 @@ const WORLD_DATA = {
           { name: 'Great Rift Valley', emoji: '🏜️', fact: 'A giant crack in the Earth stretching thousands of miles!' }
         ],
         trains: [
-          { name: 'Madaraka Express', emoji: '🚂', fact: 'A brand new modern train that zooms between Nairobi and the coast!' }
+          { name: 'Madaraka Express', emoji: '🚂', fact: 'A brand new modern train that zooms between Nairobi and the coast!', image: "images/trains/madaraka_express.png" }
         ],
         funFact: "Kenya is home to the fastest long-distance runners in the world!"
       },
@@ -921,7 +921,7 @@ const WORLD_DATA = {
       { name: "Shinkansen", emoji: "🚅", fact: "Japan's bullet train goes 320 km/h and is almost never late — not even by one minute!", image: "images/trains/shinkansen_train.jpg" },
       { name: "Trans-Siberian Railway", emoji: "🚂", fact: "The longest train ride in the world at 9,289 km — it takes 7 whole days across Russia!" },
       { name: "Shanghai Maglev", emoji: "🚄", fact: "This Chinese train floats above the tracks using magnets and goes 431 km/h!", image: "images/trains/maglev.jpg" },
-      { name: "Darjeeling Himalayan Railway", emoji: "🚂", fact: "A tiny toy train that puffs through tea gardens high up in India's mountains!" },
+      { name: "Darjeeling Himalayan Railway", emoji: "🚂", fact: "A tiny toy train that puffs through tea gardens high up in India's mountains!", image: "images/trains/darjeeling_railway.jpg" },
       { name: "KTX", emoji: "🚅", fact: "South Korea's super-fast train connects Seoul to Busan in just 2.5 hours!" }
     ],
     countries: {
@@ -943,7 +943,7 @@ const WORLD_DATA = {
           { name: 'Ganges River', emoji: '🌊', fact: 'A sacred river millions of people visit!' }
         ],
         trains: [
-          { name: 'Darjeeling Himalayan Railway', emoji: '🚂', fact: 'A cute toy train that puffs through tea gardens high up in the misty mountains!' },
+          { name: 'Darjeeling Himalayan Railway', emoji: '🚂', fact: 'A cute toy train that puffs through tea gardens high up in the misty mountains!', image: "images/trains/darjeeling_railway.jpg" },
           { name: 'Palace on Wheels', emoji: '🚂', fact: 'A royal train decorated like a palace that tours through Rajasthan!' }
         ],
         funFact: "India invented the number zero!"
@@ -967,7 +967,7 @@ const WORLD_DATA = {
         ],
         trains: [
           { name: 'Shanghai Maglev', emoji: '🚄', fact: 'Floats above the tracks using magnets and goes 431 km/h — the fastest train in the world!', image: 'images/trains/maglev.jpg' },
-          { name: 'China Railway High-speed', emoji: '🚅', fact: 'China has the most high-speed rail tracks in the world — enough to wrap around Earth!' }
+          { name: 'China Railway High-speed', emoji: '🚅', fact: 'China has the most high-speed rail tracks in the world — enough to wrap around Earth!', image: "images/trains/china_high_speed.jpg" }
         ],
         funFact: "Chinese people invented fireworks!"
       },
@@ -1717,7 +1717,7 @@ const WORLD_DATA = {
     description: "Castles, art, and delicious food everywhere!",
     trains: [
       { name: "Eurostar", emoji: "🚅", fact: "This train goes UNDER the English Channel in a tunnel beneath the ocean between England and France!", image: "images/trains/eurostar.jpg" },
-      { name: "TGV", emoji: "🚄", fact: "France's super-fast train once set a world record going 575 km/h — faster than most airplanes!" },
+      { name: "TGV", emoji: "🚄", fact: "France's super-fast train once set a world record going 575 km/h — faster than most airplanes!", image: "images/trains/tgv.jpg" },
       { name: "Glacier Express", emoji: "🚂", fact: "The slowest express train in the world takes 8 hours through 291 bridges in the Swiss Alps!", image: "images/trains/glacier_express.jpg" },
       { name: "Orient Express", emoji: "🚂", fact: "The most famous mystery train in the world — even Agatha Christie wrote a book about it!" },
       { name: "ICE", emoji: "🚅", fact: "Germany's high-speed train connects all the big cities at 300 km/h!" },
@@ -1741,7 +1741,7 @@ const WORLD_DATA = {
           { name: 'Verdon Gorge', emoji: '🏞️', fact: 'A deep turquoise canyon!' }
         ],
         trains: [
-          { name: 'TGV', emoji: '🚄', fact: 'France\'s super-fast train once went 575 km/h — faster than most airplanes!' },
+          { name: 'TGV', emoji: '🚄', fact: 'France\'s super-fast train once went 575 km/h — faster than most airplanes!', image: "images/trains/tgv.jpg" },
           { name: 'Eurostar', emoji: '🚅', fact: 'Goes under the English Channel from Paris to London in a tunnel beneath the sea!', image: 'images/trains/eurostar.jpg' }
         ],
         funFact: "France makes the most cheese in the world!"
@@ -2409,7 +2409,7 @@ const WORLD_DATA = {
         ],
         trains: [
           { name: 'Amtrak Acela', emoji: '🚅', fact: 'The fastest train in North America zooms between Washington, New York, and Boston!', image: 'images/trains/acela.jpg' },
-          { name: 'California Zephyr', emoji: '🚂', fact: 'A scenic train that crosses the Rocky Mountains and the Sierra Nevada!' }
+          { name: 'California Zephyr', emoji: '🚂', fact: 'A scenic train that crosses the Rocky Mountains and the Sierra Nevada!', image: "images/trains/california_zephyr.jpg" }
         ],
         funFact: "The US put the first person on the Moon!"
       },
@@ -2691,7 +2691,7 @@ const WORLD_DATA = {
     description: "Rainforests, mountains, and colorful cultures!",
     trains: [
       { name: "Tren a las Nubes", emoji: "🚂", fact: "The 'Train to the Clouds' climbs to 4,220 meters high in Argentina — like riding above the clouds!", image: "images/trains/tren_nubes.jpg" },
-      { name: "PeruRail to Machu Picchu", emoji: "🚂", fact: "This train takes you through the Sacred Valley to the lost city of Machu Picchu!" },
+      { name: "PeruRail to Machu Picchu", emoji: "🚂", fact: "This train takes you through the Sacred Valley to the lost city of Machu Picchu!", image: "images/trains/perurail_machu_picchu.jpg" },
       { name: "Serra Verde Express", emoji: "🚂", fact: "Brazil's jungle train goes through the Atlantic Rainforest with amazing waterfalls!" }
     ],
     countries: {
@@ -2735,7 +2735,7 @@ const WORLD_DATA = {
           { name: 'Colca Canyon', emoji: '🏜️', fact: 'Twice as deep as the Grand Canyon!' }
         ],
         trains: [
-          { name: 'PeruRail to Machu Picchu', emoji: '🚂', fact: 'A train through the Sacred Valley to the ancient lost city of Machu Picchu!' }
+          { name: 'PeruRail to Machu Picchu', emoji: '🚂', fact: 'A train through the Sacred Valley to the ancient lost city of Machu Picchu!', image: "images/trains/perurail_machu_picchu.jpg" }
         ],
         funFact: "Machu Picchu was hidden for 400 years!"
       },

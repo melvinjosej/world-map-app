@@ -111,12 +111,35 @@
     </div>
   </div>
 
+  <!-- Train Image Pop-out Overlay -->
+  <div id="train-image-overlay" class="overlay hidden">
+    <div class="train-image-container">
+      <button class="overlay-back-btn" id="train-image-back" aria-label="Go back">← Back</button>
+      <img id="train-pop-img" src="" alt="">
+    </div>
+  </div>
+
   <!-- Floating Controls -->
   <div id="floating-controls">
     <button id="sound-toggle" class="header-btn" aria-label="Toggle sound">🔊</button>
   </div>
+  <!-- Travel Journal Side Panel -->
+  <div id="travel-journal" class="side-panel hidden">
+    <div class="panel-header">
+      <h3>🚂 Travel Journal</h3>
+      <button id="close-journal" class="close-btn">×</button>
+    </div>
+    <div class="panel-content">
+      <p class="journal-summary">Distance: <span id="journal-distance">0</span> km</p>
+      <ul id="journal-list"></ul>
+    </div>
+  </div>
 
-  <button id="game-toggle" class="quiz-btn" aria-label="Toggle Quiz Mode">🎯 Quiz</button>
+  <!-- Bottom Controls -->
+  <div id="mode-controls">
+    <button id="journey-toggle" class="quiz-btn" aria-label="Toggle Journey Mode">🚂 Journey</button>
+    <button id="game-toggle" class="quiz-btn" aria-label="Toggle Quiz Mode">🎯 Quiz</button>
+  </div>
 
   <script src="world_map_data.js" defer></script>
   <script src="data.js" defer></script>

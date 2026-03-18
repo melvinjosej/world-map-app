@@ -20,6 +20,11 @@
   // ─── Game State ───
   let isGameMode = false;
   let targetContinent = null;
+
+  // ─── Journey State ───
+  let isJourneyMode = false;
+  let journeyPath = [];
+  let totalTravelDistance = 0;
   let targetCountry = null;
   let score = 0;
   const synth = window.speechSynthesis;
@@ -92,6 +97,15 @@
   const trainOverlayBack = document.getElementById('train-overlay-back');
   const trainContinentTitle = document.getElementById('train-continent-title');
   const trainGrid = document.getElementById('train-grid');
+  const trainImageOverlay = document.getElementById('train-image-overlay');
+  const trainImageBack = document.getElementById('train-image-back');
+  const trainPopImg = document.getElementById('train-pop-img');
+
+  const journeyToggle = document.getElementById('journey-toggle');
+  const travelJournal = document.getElementById('travel-journal');
+  const journalDistance = document.getElementById('journal-distance');
+  const journalList = document.getElementById('journal-list');
+  const closeJournal = document.getElementById('close-journal');
 
   // ─── Simplified SVG continent paths ───
   const CONTINENT_PATHS = {
@@ -540,6 +554,86 @@
     synth.cancel();
   }
 
+  function startJourney() {
+    if (isGameMode) stopGame();
+    isJourneyMode = true;
+    journeyPath = [];
+    totalTravelDistance = 0;
+    travelJournal.classList.remove('hidden');
+    journeyToggle.textContent = '✋ Stop';
+    journeyToggle.classList.add('active');
+    if (journalDistance) journalDistance.textContent = '0';
+    if (journalList) journalList.innerHTML = '<li class="empty-journal">Tap a country to start!</li>';
+    speak("Journey mode activated.");
+    removeExistingTracks();
+  }
+
+  function stopJourney() {
+    if (totalTravelDistance > 0) {
+      speak(`Tour complete. Your journey covered a total of ${totalTravelDistance} kilometers.`);
+    }
+    isJourneyMode = false;
+    if (travelJournal) travelJournal.classList.add('hidden');
+    journeyToggle.textContent = '🚂 Journey';
+    journeyToggle.classList.remove('active');
+    removeExistingTracks();
+  }
+
+  function removeExistingTracks() {
+    const tracks = document.querySelectorAll('.train-track, .station-marker');
+    tracks.forEach(t => t.remove());
+  }
+
+  function handleJourneyClick(continentKey, countryKey, pathElement) {
+    const countryData = WORLD_DATA[continentKey]?.countries?.[countryKey];
+    if (!countryData) return;
+
+    const bbox = pathElement.getBBox();
+    const center = {
+      name: countryData.name,
+      x: bbox.x + bbox.width / 2,
+      y: bbox.y + bbox.height / 2
+    };
+
+    playTapSound();
+    speak(countryData.name);
+
+    const marker = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    marker.setAttribute('cx', center.x);
+    marker.setAttribute('cy', center.y);
+    marker.setAttribute('r', 4);
+    marker.classList.add('station-marker');
+    worldMap.appendChild(marker);
+
+    if (journeyPath.length > 0) {
+      const prev = journeyPath[journeyPath.length - 1];
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      line.setAttribute('d', `M ${prev.x} ${prev.y} Q ${(prev.x + center.x)/2} ${(prev.y + center.y)/2 - 30} ${center.x} ${center.y}`);
+      line.classList.add('train-track');
+      worldMap.appendChild(line);
+
+      const dx = center.x - prev.x;
+      const dy = center.y - prev.y;
+      const dist = Math.round(Math.sqrt(dx*dx + dy*dy) * 40);
+      totalTravelDistance += dist;
+      if (journalDistance) journalDistance.textContent = totalTravelDistance;
+
+      const li = document.createElement('li');
+      li.innerHTML = `<span>${prev.name} → ${center.name}</span> <span>+${dist} km</span>`;
+      const empty = journalList.querySelector('.empty-journal');
+      if (empty) empty.remove();
+      journalList.appendChild(li);
+      journalList.scrollTop = journalList.scrollHeight;
+    } else {
+      const li = document.createElement('li');
+      li.textContent = `Started in ${center.name}`;
+      const empty = journalList.querySelector('.empty-journal');
+      if (empty) empty.remove();
+      journalList.appendChild(li);
+    }
+    journeyPath.push(center);
+  }
+
   function handleGameClick(continentKey, countryKey) {
     if (countryKey === targetCountry) {
       playSuccessSound();
@@ -933,7 +1027,6 @@
         newPath.classList.add('country-path');
         newPath.dataset.continent = mapping.continent;
         newPath.dataset.country = mapping.country;
-        newPath.style.filter = `drop-shadow(0 0 6px ${contData.glowColor})`;
       } else {
         newPath.setAttribute('fill', 'rgba(255,255,255,0.08)');
         newPath.setAttribute('stroke', 'rgba(255,255,255,0.05)');
@@ -980,6 +1073,8 @@
         const ctry = path.dataset.country;
         if (isGameMode) {
           handleGameClick(cont, ctry);
+        } else if (isJourneyMode) {
+          handleJourneyClick(cont, ctry, path);
         } else {
           playOpenSound();
           currentContinent = cont;
@@ -1176,6 +1271,12 @@
             <p>${train.fact}</p>
           </div>
         `;
+        
+        card.addEventListener('click', () => {
+          playTapSound();
+          openTrainImageOverlay(train.image, train.name);
+        });
+
         trainGrid.appendChild(card);
       });
     }
@@ -1184,6 +1285,24 @@
     requestAnimationFrame(() => {
       trainOverlay.classList.add('visible');
     });
+  }
+
+  function openTrainImageOverlay(imgSrc, altText) {
+    currentView = 'trainImageCard';
+    trainPopImg.src = imgSrc;
+    trainPopImg.alt = altText;
+    trainImageOverlay.classList.remove('hidden');
+    requestAnimationFrame(() => {
+      trainImageOverlay.classList.add('visible');
+    });
+  }
+
+  function closeTrainImageOverlay() {
+    trainImageOverlay.classList.remove('visible');
+    setTimeout(() => {
+      trainImageOverlay.classList.add('hidden');
+    }, 350);
+    currentView = 'trainCard';
   }
 
   function closeTrainOverlay() {
@@ -1201,6 +1320,8 @@
       closeFactCard();
     } else if (currentView === 'trainCard') {
       closeTrainOverlay();
+    } else if (currentView === 'trainImageCard') {
+      closeTrainImageOverlay();
     } else if (currentView === 'continent') {
       currentView = 'world';
       currentContinent = null;
@@ -1240,6 +1361,18 @@
     }
   });
 
+  trainImageBack.addEventListener('click', () => {
+    playTapSound();
+    closeTrainImageOverlay();
+  });
+
+  trainImageOverlay.addEventListener('click', (e) => {
+    if (e.target === trainImageOverlay) {
+      playTapSound();
+      closeTrainImageOverlay();
+    }
+  });
+
   // View trains button
   viewTrainsBtn.addEventListener('click', () => {
     playOpenSound();
@@ -1267,6 +1400,28 @@
       }
     }
   });
+
+  // Journey toggle
+  if (journeyToggle) {
+    journeyToggle.addEventListener('click', () => {
+      playTapSound();
+      if (isJourneyMode) {
+        stopJourney();
+      } else {
+        // Only start if we are on the world view
+        if (currentView !== 'world') {
+          goBack();
+          setTimeout(startJourney, 400);
+        } else {
+          startJourney();
+        }
+      }
+    });
+  }
+
+  if (closeJournal) {
+    closeJournal.addEventListener('click', stopJourney);
+  }
 
   // Keyboard support
   document.addEventListener('keydown', (e) => {
