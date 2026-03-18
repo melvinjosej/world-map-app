@@ -100,7 +100,6 @@
   const trainImageOverlay = document.getElementById('train-image-overlay');
   const trainImageBack = document.getElementById('train-image-back');
   const trainPopImg = document.getElementById('train-pop-img');
-
   const journeyToggle = document.getElementById('journey-toggle');
   const travelJournal = document.getElementById('travel-journal');
   const journalDistance = document.getElementById('journal-distance');
