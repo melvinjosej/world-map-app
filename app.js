@@ -989,6 +989,7 @@
 
   // ─── Render World Map ───
   let cachedSvgPaths = null;
+  const continentCardsCache = {};
 
   function renderWorldMap() {
     worldMap.innerHTML = '';
@@ -1125,26 +1126,33 @@
 
     // Build country cards
     countryGrid.innerHTML = '';
-    Object.entries(data.countries).forEach(([key, country], i) => {
-      const card = document.createElement('div');
-      card.classList.add('country-card', 'animate-in');
-      card.style.animationDelay = `${i * 0.08}s`;
-      card.style.setProperty('--card-glow', data.glowColor);
+    if (continentCardsCache[continentKey]) {
+      continentCardsCache[continentKey].forEach(card => countryGrid.appendChild(card));
+    } else {
+      const cards = [];
+      Object.entries(data.countries).forEach(([key, country], i) => {
+        const card = document.createElement('div');
+        card.classList.add('country-card', 'animate-in');
+        card.style.animationDelay = `${i * 0.08}s`;
+        card.style.setProperty('--card-glow', data.glowColor);
 
-      card.innerHTML = `
-        <span class="card-flag">${country.flag}</span>
-        <span class="card-name">${country.name}</span>
-        <span class="card-capital">🏛️ ${country.capital}</span>
-      `;
+        card.innerHTML = `
+          <span class="card-flag">${country.flag}</span>
+          <span class="card-name">${country.name}</span>
+          <span class="card-capital">🏛️ ${country.capital}</span>
+        `;
 
-      card.addEventListener('click', () => {
-        playOpenSound();
-        speak(country.name);
-        openFactCard(continentKey, key);
+        card.addEventListener('click', () => {
+          playOpenSound();
+          speak(country.name);
+          openFactCard(continentKey, key);
+        });
+
+        cards.push(card);
+        countryGrid.appendChild(card);
       });
-
-      countryGrid.appendChild(card);
-    });
+      continentCardsCache[continentKey] = cards;
+    }
 
     // Transition views
     worldView.classList.remove('active');
