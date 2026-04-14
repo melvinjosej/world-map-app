@@ -519,7 +519,7 @@
     Object.entries(WORLD_DATA).forEach(([contKey, cont]) => {
       if (!cont.countries) return;
       Object.entries(cont.countries).forEach(([countryKey, country]) => {
-        allCountries.push({ contKey, countryKey, name: country.name, flag: country.flag });
+        allCountries.push({ contKey, countryKey, name: country.name, flag: country.flag, data: country });
       });
     });
     let next;
@@ -529,8 +529,25 @@
 
     targetContinent = next.contKey;
     targetCountry = next.countryKey;
-    gamePrompt.textContent = `Find ${next.flag} ${next.name}!`;
-    speak(`Can you find ${next.name}?`);
+
+    const options = ['country'];
+    if (next.data.animals && next.data.animals.length > 0) options.push('animal');
+    if (next.data.monuments && next.data.monuments.length > 0) options.push('monument');
+
+    const chosenOption = options[Math.floor(Math.random() * options.length)];
+
+    if (chosenOption === 'animal') {
+      const animal = next.data.animals[Math.floor(Math.random() * next.data.animals.length)];
+      gamePrompt.textContent = `Find the home of the ${animal.emoji} ${animal.name}!`;
+      speak(`Can you find the home of the ${animal.name}?`);
+    } else if (chosenOption === 'monument') {
+      const monument = next.data.monuments[Math.floor(Math.random() * next.data.monuments.length)];
+      gamePrompt.textContent = `Where is the ${monument.emoji} ${monument.name}?`;
+      speak(`Where can you find the ${monument.name}?`);
+    } else {
+      gamePrompt.textContent = `Find ${next.flag} ${next.name}!`;
+      speak(`Can you find ${next.name}?`);
+    }
   }
 
   function startGame() {
@@ -1169,6 +1186,8 @@
     factCountryName.textContent = country.name;
     factCapital.textContent = `🏛️ Capital: ${country.capital}`;
     factFun.textContent = country.funFact;
+
+    speak(`Welcome to ${country.name}. Capital is ${country.capital}. Did you know? ${country.funFact}`);
 
     if (openedFromWorld) {
       headerTitle.textContent = `${country.flag} ${country.name}`;
