@@ -1049,3 +1049,31 @@ body:has(.overlay.visible) #stars { animation-play-state: paused; }
   from { opacity: 0.8; }
   to { opacity: 1; filter: drop-shadow(0 0 12px rgba(255, 215, 0, 1)); }
 }
+
+/* --- Passport & Sticker Book --- */
+.passport-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  gap: 12px;
+  padding: 20px 5px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.sticker-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  font-size: 2.2rem;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.sticker-item:hover {
+  transform: scale(1.2) rotate(5deg);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.2);
+}

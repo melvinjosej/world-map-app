@@ -655,6 +655,7 @@
       playSuccessSound();
       const countryData = WORLD_DATA[continentKey]?.countries?.[countryKey];
       speak(`Great job! That's ${countryData ? countryData.name : 'correct'}!`);
+      addSticker('⭐');
       setTimeout(pickNextTarget, 1800);
     } else {
       playErrorSound();
@@ -1188,6 +1189,7 @@
     factFun.textContent = country.funFact;
 
     speak(`Welcome to ${country.name}. Capital is ${country.capital}. Did you know? ${country.funFact}`);
+    addSticker(country.flag);
 
     if (openedFromWorld) {
       headerTitle.textContent = `${country.flag} ${country.name}`;
@@ -1339,6 +1341,75 @@
     currentView = 'continent';
   }
 
+  // ─── Passport & Sticker Book ───
+  const passportToggle = document.getElementById('passport-toggle');
+  const passportOverlay = document.getElementById('passport-overlay');
+  const passportBack = document.getElementById('passport-back');
+  const passportGrid = document.getElementById('passport-grid');
+
+  if (passportToggle) {
+    passportToggle.addEventListener('click', () => {
+      playTapSound();
+      openPassport();
+    });
+  }
+
+  if (passportBack) {
+    passportBack.addEventListener('click', () => {
+      playTapSound();
+      closePassport();
+    });
+  }
+
+  function getStickers() {
+    try {
+      const stored = localStorage.getItem('world_explorer_stickers');
+      return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function addSticker(emoji) {
+    const current = getStickers();
+    if (!current.includes(emoji)) {
+      current.push(emoji);
+      localStorage.setItem('world_explorer_stickers', JSON.stringify(current));
+    }
+  }
+
+  function openPassport() {
+    currentView = 'passport';
+    renderStickers();
+    passportOverlay.classList.remove('hidden');
+    requestAnimationFrame(() => {
+      passportOverlay.classList.add('visible');
+    });
+  }
+
+  function closePassport() {
+    passportOverlay.classList.remove('visible');
+    setTimeout(() => {
+      passportOverlay.classList.add('hidden');
+    }, 350);
+    currentView = currentContinent ? 'continent' : 'world';
+  }
+
+  function renderStickers() {
+    passportGrid.innerHTML = '';
+    const stickers = getStickers();
+    if (stickers.length === 0) {
+      passportGrid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); margin-top: 20px;">No stickers yet! Explore places or finish quizzes to win them!</p>`;
+      return;
+    }
+    stickers.forEach(st => {
+      const div = document.createElement('div');
+      div.classList.add('sticker-item');
+      div.textContent = st;
+      passportGrid.appendChild(div);
+    });
+  }
+
   // ─── Back Navigation ───
   function goBack() {
     playTapSound();
@@ -1348,6 +1419,8 @@
       closeTrainOverlay();
     } else if (currentView === 'trainImageCard') {
       closeTrainImageOverlay();
+    } else if (currentView === 'passport') {
+      closePassport();
     } else if (currentView === 'continent') {
       currentView = 'world';
       currentContinent = null;
